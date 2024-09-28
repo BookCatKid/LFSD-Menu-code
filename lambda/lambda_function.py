@@ -4,30 +4,33 @@ import logging
 import ask_sdk_core.utils as ask_utils
 from datetime import datetime
 import pytz  # Import the pytz library
+from urllib.request import urlopen 
+import json
 
-menu_data = {
-    2: {"day": "LABOR DAY", "food": []},
-    3: {"day": "ITALIAN DAY", "food": ["Fish Tenders", "Rice Salad", "Brownies", "Fresh Fruit"]},
-    4: {"day": "ITALIAN DAY", "food": ["Pasta Rustica", "Garden Salad", "Fresh Fruit"]},
-    5: {"day": "", "food": ["Quinoa Salad", "Tomato Cuc Salad", "Fresh Fruit"]},
-    6: {"day": "", "food": ["Margherita Pizza", "Caesar Salad", "Fresh Fruit", "Carrot Cake"]},
-    9: {"day": "ALL AMERICAN", "food": ["Pasta Carbonara", "Garden Salad", "Fresh Fruit", "Baguette"]},
-    10: {"day": "ASIAN DAY", "food": ["Teriyaki Chicken", "Rice", "Rugelachs", "Fresh Fruit"]},
-    11: {"day": "", "food": ["Turkey Sandwich", "Vegetable Soup", "Fruit Salad"]},
-    12: {"day": "", "food": ["Shepherd's Pie", "Spinach Salad", "Fresh Fruit", "Baguette"]},
-    13: {"day": "FRENCH DAY", "food": ["Ratatouille", "Couscous", "Fresh Fruit", "Ch. Chip Cookies"]},
-    16: {"day": "ALL AMERICAN", "food": ["BBQ Chicken", "Potato Salad", "Fresh Fruit"]},
-    17: {"day": "", "food": ["Beef Chili", "Brown Rice", "Carrots & Celery", "Fruit Pies"]},
-    18: {"day": "", "food": ["Pepperoni Pizza", "Garden Salad", "Fresh Fruit"]},
-    19: {"day": "", "food": ["Roast Chicken & Vegetables", "Fresh Fruit"]},
-    20: {"day": "", "food": ["Tortellini Marinara", "Garden Salad", "Fresh Fruit", "Cowboy Cookies"]},
-    23: {"day": "", "food": ["Chicken Tenders", "Rice with Corn", "Banana Cake", "Fresh Fruit"]},
-    24: {"day": "ALL AMERICAN", "food": ["Meatloaf", "Mac & Cheese", "Fresh Fruit", "Banana Cake"]},
-    25: {"day": "", "food": ["Chicken Noodle", "Cheese Toast", "Fruit Salad"]},
-    26: {"day": "ITALIAN DAY", "food": ["Salmon Penne Pasta", "Garden Salad", "Fresh Fruit"]},
-    27: {"day": "", "food": ["Vegetable Fried Rice", "Fresh Fruit", "Cheesecake"]},
-    30: {"day": "MEXICAN DAY", "food": ["Chicken Fajitas", "Mexican Rice", "Fresh Fruit"]}
-}
+# OBSOLETE: now using from api
+# menu_data = {
+#     2: {"day": "LABOR DAY", "food": []},
+#     3: {"day": "ITALIAN DAY", "food": ["Fish Tenders", "Rice Salad", "Brownies", "Fresh Fruit"]},
+#     4: {"day": "ITALIAN DAY", "food": ["Pasta Rustica", "Garden Salad", "Fresh Fruit"]},
+#     5: {"day": "", "food": ["Quinoa Salad", "Tomato Cuc Salad", "Fresh Fruit"]},
+#     6: {"day": "", "food": ["Margherita Pizza", "Caesar Salad", "Fresh Fruit", "Carrot Cake"]},
+#     9: {"day": "ALL AMERICAN", "food": ["Pasta Carbonara", "Garden Salad", "Fresh Fruit", "Baguette"]},
+#     10: {"day": "ASIAN DAY", "food": ["Teriyaki Chicken", "Rice", "Rugelachs", "Fresh Fruit"]},
+#     11: {"day": "", "food": ["Turkey Sandwich", "Vegetable Soup", "Fruit Salad"]},
+#     12: {"day": "", "food": ["Shepherd's Pie", "Spinach Salad", "Fresh Fruit", "Baguette"]},
+#     13: {"day": "FRENCH DAY", "food": ["Ratatouille", "Couscous", "Fresh Fruit", "Ch. Chip Cookies"]},
+#     16: {"day": "ALL AMERICAN", "food": ["BBQ Chicken", "Potato Salad", "Fresh Fruit"]},
+#     17: {"day": "", "food": ["Beef Chili", "Brown Rice", "Carrots & Celery", "Fruit Pies"]},
+#     18: {"day": "", "food": ["Pepperoni Pizza", "Garden Salad", "Fresh Fruit"]},
+#     19: {"day": "", "food": ["Roast Chicken & Vegetables", "Fresh Fruit"]},
+#     20: {"day": "", "food": ["Tortellini Marinara", "Garden Salad", "Fresh Fruit", "Cowboy Cookies"]},
+#     23: {"day": "", "food": ["Chicken Tenders", "Rice with Corn", "Banana Cake", "Fresh Fruit"]},
+#     24: {"day": "ALL AMERICAN", "food": ["Meatloaf", "Mac & Cheese", "Fresh Fruit", "Banana Cake"]},
+#     25: {"day": "", "food": ["Chicken Noodle", "Cheese Toast", "Fruit Salad"]},
+#     26: {"day": "ITALIAN DAY", "food": ["Salmon Penne Pasta", "Garden Salad", "Fresh Fruit"]},
+#     27: {"day": "", "food": ["Vegetable Fried Rice", "Fresh Fruit", "Cheesecake"]},
+#     30: {"day": "MEXICAN DAY", "food": ["Chicken Fajitas", "Mexican Rice", "Fresh Fruit"]}
+# }
 
 from ask_sdk_core.skill_builder import SkillBuilder
 from ask_sdk_core.dispatch_components import AbstractRequestHandler
@@ -64,8 +67,13 @@ class LFSDMenuIntentHandler(AbstractRequestHandler):
 
         # Get the current day of the month
         today_day = local_now.day  # Get the day of the month
+        
+        url = "https://raw.githubusercontent.com/BookCatKid/LFSD-MENU/refs/heads/main/menu.json"
+        response = urlopen(url) 
+        data_json = json.loads(response.read()) 
+        
 
-        menu_info = menu_data.get(today_day, None)  # Retrieve the menu for today
+        menu_info = data_json.get(str(today_day), None)  # Retrieve the menu for today
 
         if menu_info:
             day_info = menu_info["day"]
@@ -74,7 +82,7 @@ class LFSDMenuIntentHandler(AbstractRequestHandler):
             if day_info:
                 speak_output = f"Today is {day_info}. "
             else:
-                speak_output = "The menu is available today." 
+                speak_output = "The menu is available today."
 
             if food_menu:
                 speak_output += " The menu includes: " + ", ".join(food_menu) + "."
